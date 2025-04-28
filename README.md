@@ -20,16 +20,15 @@ This Python script allows you to animate your Discord custom status using differ
 
 2. Obtain your Discord Authorization Token:
    - **Important**: Be careful with your token, it gives full account access.
-   - **Note**: Discord hides the token after the page fully loads. However, you can still retrieve it by following these steps:
+   - **Note**: Discord normally hides the token after the page fully loads. However, you can reliably retrieve it by using Chrome’s Mobile Emulation feature:
      1. Open [discord.com](https://discord.com) and log in to your account.
      2. Open Chrome Developer Tools (`F12` or `Ctrl+Shift+I`).
-     3. Go to the **Application** tab.
-     4. Under **Local Storage**, select `https://discord.com`.
-     5. In the search box, type `token`.
-     6. Initially, no results will appear because Discord deletes the token after the page finishes loading.
-     7. Refresh the page while keeping Developer Tools open.
-     8. Quickly check the search results — the token will briefly appear in the **Key-Value** list.
-     9. Copy the token from the **Value** field before it disappears.
+     3. Toggle **Device Toolbar** (click the phone/tablet icon or press `Ctrl+Shift+M`) to enable Mobile Emulation.
+     5. Go to the **Application** tab.
+     6. Under **Local Storage**, select `https://discord.com`.
+     7. In the search bar, type `token`.
+     8. The token should now be visible directly in the **Key-Value** list without disappearing.
+     9. Copy the token from the **Value** field.
 
 3. Run the script:
    ```bash
