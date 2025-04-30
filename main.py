@@ -2,6 +2,46 @@ import sys
 import requests
 import time
 import asyncio
+import random
+
+
+class SupportedCharSet:
+    def __init__(self) -> None:
+        self.mode = 0
+        self.BASEFONT = "abcdefghijklmnopqrstuvwxyz"
+        self.BOLDFRAKTURFONT = "𝖆𝖇𝖈𝖉𝖊𝖋𝖌𝖍𝖎𝖏𝖐𝖑𝖒𝖓𝖔𝖕𝖖𝖗𝖘𝖙𝖚𝖛𝖜𝖝𝖞𝖟"
+        self.BOLDSCRIPTFONT = "𝓪𝓫𝓬𝓭𝓮𝓯𝓰𝓱𝓲𝓳𝓴𝓵𝓶𝓷𝓸𝓹𝓺𝓻𝓼𝓽𝓾𝓿𝔀𝔁𝔂𝔃"
+        self.BOLDFONT = "𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳"
+        self.MONOSPACEFONT = "𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣"
+        
+        self.EXTRA_START = 80
+        self.extra_chars = ""
+        self.FONTS = [self.BASEFONT,
+                      self.BOLDFRAKTURFONT,
+                      self.BOLDSCRIPTFONT,
+                      self.BOLDFONT,
+                      self.MONOSPACEFONT
+                      ]
+        return None
+
+    def RandomChar(self, index: int) -> str:
+
+        if (index >= 80):
+            return self.extra_chars[index-self.EXTRA_START]
+        
+        font = random.choice(self.FONTS)
+        return font[index]
+
+    def GetBold(self, index: int) -> str:
+        return self.BOLDFONT[index]
+
+    def GetCharIndex(self, char: str) -> int:
+        char.lower()
+        index = self.BASEFONT.find(char)
+        if (index == -1):
+            self.extra_chars += char
+            index = self.EXTRA_START + len(self.extra_chars)-1
+        return index
 
 class Optio:
     def __init__(self, title, description, action=None) -> None:
@@ -34,7 +74,7 @@ class DCStatus:
         self.wait_idle = 2.0
         self.wait_active = 2.0
 
-        self.debug = True
+        self.debug = False
         
         self.application_begin = time.time()
         self.application_requests = 0
@@ -43,6 +83,8 @@ class DCStatus:
         self.options_list = [
             Optio("[ANIM] Type and Idle", "Animates Status like it was being written in realtime.", self.type_and_idle),
             Optio("[ANIM] Scrolling", "Animates Status like a marquee sign, scrolling the text from left to right.", self.scrolling_message),
+            Optio("[ANIM] Random Character", "Randomizes your status characters to use multiple fonts", self.anim_char_message),
+            Optio("[ANIM] Wavy Bold", "Animates status message to have a bold font wave", self.wavy_bold_message),
             Optio("Settings", "Configure your Auth Token, Status message and other parameters.", self.set_settings),
             Optio("Help", "Show the Basic usage info", self.show_help),
             Optio("Exit", "Exit the application.", self.exit_program),
@@ -56,6 +98,8 @@ class DCStatus:
             Optio("Back", "Back to menu."),
         ]
         self.settings = Options(self.settings_list)
+
+        self.scs = SupportedCharSet()
     
     async def change_status(self, msg):
         if self.debug:
@@ -110,16 +154,67 @@ class DCStatus:
     async def scrolling_message(self):
         status_length = len(self.base_status)
         pads_max_amnt = self.max_status_width - status_length
-        base_status_with_custom_spaces = self.base_status.replace(' ', self.narrow_nbspace)
-        if pads_max_amnt > 0:
+        base_status_with_custom_spaces = self.base_status.replace(' ', self.narrow_nbspace) # because when scrolling rightmost space is stripped
+        if pads_max_amnt > 8:
             status_padded = self.narrow_nbspace * pads_max_amnt + base_status_with_custom_spaces
         else:
             status_padded = self.narrow_nbspace * (self.max_status_width//2) + base_status_with_custom_spaces
+        print("Marquee scrolling started")
+        print("Press CTRL + C to exit the application\n")
         while True:
             status_padded = status_padded[1:] + status_padded[0]
             self.current_status = status_padded[:self.max_status_width]
             await self.change_status(self.current_status)
             await asyncio.sleep(self.wait_active + self.response_time_delta)
+
+    # Character random anim
+    async def anim_char_message(self):
+        print("Character randomization started")
+        print("Press CTRL + C to exit the application\n")
+        char_indices = []
+        for c in self.base_status:
+            print(c)
+            char_indices.append(self.scs.GetCharIndex(c))
+            
+        print("Char indices: ", char_indices)
+        while True:
+            random_result = ""
+            for i in char_indices:
+                random_result += self.scs.RandomChar(i)
+            self.current_status = random_result
+            await self.change_status(self.current_status)
+            await asyncio.sleep(self.wait_active + self.response_time_delta)
+        
+    # Wavy bold anim
+    async def wavy_bold_message(self):
+        print("Wavy Bold started")
+        print("Press CTRL + C to exit the application\n")
+        char_indices = []
+        for c in self.base_status:
+            print(c)
+            char_indices.append(self.scs.GetCharIndex(c))
+            
+        print("Char indices: ", char_indices)
+        wavepos = 0
+        maxlen = len(char_indices)-1
+        while True:
+            result = list(self.base_status)
+            selected = ""
+            i = char_indices[wavepos]
+            if (i >= 80):
+                selected = self.scs.RandomChar(i)
+            else:
+                selected = self.scs.GetBold(i)
+                    
+            result[wavepos] = selected
+            self.current_status = ''.join(result)
+            await self.change_status(self.current_status)
+            await asyncio.sleep(self.wait_active + self.response_time_delta)
+            if (wavepos >= maxlen):
+                wavepos = 0
+            else:
+                wavepos += 1 
+        
             
     # other main menu utils
     async def show_help(self):
