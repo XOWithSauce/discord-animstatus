@@ -6,6 +6,8 @@ This Python script allows you to animate your Discord custom status using differ
 
 - **Type and Idle Animation**: Simulates typing your status message in real-time, followed by periodic "idle" animation.
 - **Scrolling Animation**: Creates a marquee-style scrolling text effect in your Discord status.
+- **Random Character Animation**: Randomizes each character font to be different
+- **Wavy Bold Animation**: Animates a bold font character to travel across your message 
 - **Custom Settings**:
   - Set your own status message
   - Input your Discord Authentication Token
